@@ -67,7 +67,6 @@ using CosmosClient client = serviceProvider.GetRequiredService<CosmosClient>();
 
 var account = await client.ReadAccountAsync();
 
-
 Console.WriteLine($"account.Id: {account.Id}; ReadableRegions: {string.Join(",", account.ReadableRegions.Select(x => x.Name))}; account.Consistency: {account.Consistency.DefaultConsistencyLevel}");
 
 Database database = await //client.CreateDatabaseAsync("CARE")
@@ -106,11 +105,24 @@ var patchOne = pickOne;
 await ReadOneAsync(container, pickOne);
 await Task.Delay(1000);
 
-await PatchOneAsync(container, patchOne.Id, patchOne.Phone);
+await PatchOneAsync(container, patchOne.Id, patchOne.Phone,
+    [
+        PatchOperation.Set("/lineOfBiz", "test"),
+        PatchOperation.Set("/status", PhoneStatus.Grey),
+        PatchOperation.Set("/comment", $"Updated: {DateTime.Now}, with new status: {PhoneStatus.Grey}"),
+        PatchOperation.Add("/history/0", new PhoneStatusRow(){CreateDate = DateTime.Now, Status = PhoneStatus.Grey}),
+    ]);
 await Task.Delay(1200);
 
-await PatchOneAgainAsync(container, patchOne.Id, patchOne.Phone);
+await PatchOneAsync(container, patchOne.Id, patchOne.Phone,
+    [
+        PatchOperation.Set("/status", PhoneStatus.Clear),
+        PatchOperation.Add("/history/0", new PhoneStatusRow(){CreateDate = DateTime.Now, Status = PhoneStatus.Clear}),
+    ]);
 await Task.Delay(200);
+
+await DeleteItemsAsync(container, searchResult.Item1);
+Console.WriteLine($"{Environment.NewLine}[End] Exited");
 
 static async Task CreateDemoItemsAsync(Container container, string phone)
 {
@@ -141,7 +153,7 @@ static async Task<Tuple<List<PhoneStatusInfo>, double>> SearchItemsByPhoneAsync(
     Console.WriteLine("\r\n====Search Phone ====");
 
     var queryable = container.GetItemLinqQueryable<PhoneStatusInfo>();
-    var matches = queryable.Where(p => p.Phone == phone2Search).OrderBy(p => p.CreateDate).Skip(1);
+    var matches = queryable.Where(p => p.Phone == phone2Search).OrderBy(p => p.CreateDate);//.Skip(1);
     using var linqFeed = matches.ToFeedIterator();
 
     var result = new List<PhoneStatusInfo>();
@@ -174,7 +186,7 @@ static async Task ReadOneAsync(Container container, PhoneStatusInfo pickOne)
 
         Console.WriteLine($"readResult.RequestCharge : {readResult.RequestCharge}");
         Console.WriteLine($"""
-            upsertResult1.Resource :
+            readResult.Resource :
               Id: {readResult.Resource.Id}
               phone:{readResult.Resource.Phone}
               Comment:{readResult.Resource.Comment}
@@ -207,15 +219,15 @@ static async Task UpsertOneAsync(Container container, PhoneStatusInfo upsertOne)
             CreateDate = DateTime.Parse("2023-12-28T10:01:53.8085827+08:00")
         };
 
-        var upsertResult1 = await container.UpsertItemAsync<PhoneStatusInfo>(upsertData_1);
+        var upsertResult = await container.UpsertItemAsync<PhoneStatusInfo>(upsertData_1);
 
-        Console.WriteLine($"upsertResult1.RequestCharge : {upsertResult1.RequestCharge}");
+        Console.WriteLine($"upsertResult.RequestCharge : {upsertResult.RequestCharge}");
         Console.WriteLine($"""
-            upsertResult1.Resource :
-              Id: {upsertResult1.Resource.Id}
-              phone:{upsertResult1.Resource.Phone}
-              Comment:{upsertResult1.Resource.Comment}
-              History count:{upsertResult1.Resource.History.Count}
+            upsertResult.Resource :
+              Id: {upsertResult.Resource.Id}
+              phone:{upsertResult.Resource.Phone}
+              Comment:{upsertResult.Resource.Comment}
+              History count:{upsertResult.Resource.History.Count}
             """);
     }
     catch (CosmosException ex)
@@ -228,48 +240,43 @@ static async Task UpsertOneAsync(Container container, PhoneStatusInfo upsertOne)
     }
 }
 
-static async Task PatchOneAsync(Container container, string id2Patch, string phone2Patch)
+static async Task PatchOneAsync(Container container, string id2Patch, string phone2Patch, PatchOperation[] patchOperations)
 {
     Console.WriteLine("\r\n====Patching====");
 
-    var newStatus = PhoneStatus.Grey;
-
-    var patchResult1 = await container.PatchItemAsync<PhoneStatusInfo>(id2Patch, new PartitionKey(phone2Patch), new[]
+    foreach (var item in patchOperations)
     {
-            PatchOperation.Set("/lineOfBiz", "test"),
-            PatchOperation.Set("/status", newStatus),
-            PatchOperation.Set("/comment", $"Updated: {DateTime.Now}, with new status: {newStatus}"),
-            PatchOperation.Add("/history/0", new PhoneStatusRow(){CreateDate = DateTime.Now, Status = newStatus}),
-        });
+        Console.WriteLine($"  # {item.OperationType} {item.Path}");
+    }  
 
-    Console.WriteLine($"patchResult1.RequestCharge : {patchResult1.RequestCharge}");
+    var patchResult = await container.PatchItemAsync<PhoneStatusInfo>(id2Patch, new PartitionKey(phone2Patch), patchOperations);
+
+    Console.WriteLine($"patchResult.RequestCharge : {patchResult.RequestCharge}");
     Console.WriteLine($"""
-              patchResult1.Resource :
-              Id: {patchResult1.Resource.Id}
-              phone:{patchResult1.Resource.Phone}
-              Comment:{patchResult1.Resource.Comment}
-              History count:{patchResult1.Resource.History.Count}
+              patchResult.Resource :
+              Id: {patchResult.Resource.Id}
+              phone:{patchResult.Resource.Phone}
+              Comment:{patchResult.Resource.Comment}
+              History count:{patchResult.Resource.History.Count}
             """);
 }
 
-static async Task PatchOneAgainAsync(Container container, string id2Patch, string phone2Patch)
+static async Task DeleteItemsAsync(Container container, List<PhoneStatusInfo> item1)
 {
-    Console.WriteLine("\r\n====Patching====");
+    Console.WriteLine($"{Environment.NewLine}Press Enter to delete {item1.Count} items just newly created in this session, or any other key to exit.");
+    var key = Console.ReadKey(true);
 
-    var newStatus = PhoneStatus.Clear;
+    if (key.Key != ConsoleKey.Enter) return;
+    Console.WriteLine("\r\n====Deleting items====");
 
-    var patchResult1 = await container.PatchItemAsync<PhoneStatusInfo>(id2Patch, new PartitionKey(phone2Patch), new[]
+    double totalRequestCharges = 0;
+    foreach (var item in item1)
     {
-            PatchOperation.Set("/status", newStatus),
-            PatchOperation.Add("/history/0", new PhoneStatusRow(){CreateDate = DateTime.Now, Status = newStatus}),
-        });
+        var delResp = await container.DeleteItemAsync<PhoneStatusInfo>(item.Id, new PartitionKey(item.Phone));
+        Console.WriteLine($"Delete {item.Id}/{item.Phone} took {delResp.RequestCharge} RUs");
 
-    Console.WriteLine($"patchResult1.RequestCharge : {patchResult1.RequestCharge}");
-    Console.WriteLine($"""
-              patchResult1.Resource :
-              Id: {patchResult1.Resource.Id}
-              phone:{patchResult1.Resource.Phone}
-              Comment:{patchResult1.Resource.Comment}
-              History count:{patchResult1.Resource.History.Count}
-            """);
+        totalRequestCharges += delResp.RequestCharge;
+    }
+
+    Console.WriteLine($"Delete {item1.Count} took {totalRequestCharges} RUs");
 }
