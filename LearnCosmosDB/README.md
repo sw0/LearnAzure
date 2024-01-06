@@ -5,6 +5,8 @@ In this demo, we use connection string to connect CosmosDB. Usually, we should r
 ## Prepare
 You can use  https://cosmos.azure.com/try to create "Azure Cosmos DB for NoSQL (recommended)" firstly and get the connection string, and put it in `appSettings.json`.
 
+You can add a applicationInsights connection string in `appSettings.json` to use application insights.
+
 ### CosmosDB emulator
 1. Run the emulator docker container
 1. 
@@ -143,3 +145,5 @@ cosmos db emulator
 - https://cosmos.azure.com/try
 - https://cosmos.azure.com/sunset/
 
+applicationInsights
+- https://learn.microsoft.com/en-us/azure/azure-monitor/app/ilogger?tabs=dotnet6
