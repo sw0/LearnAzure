@@ -26,7 +26,6 @@ services.AddAzureClients(clientBuilder =>
 {
     clientBuilder.AddClient<CosmosClient, CosmosClientOptions>((options) =>
     {
-
         options.HttpClientFactory = () => new HttpClient(new HttpClientHandler()
         {
             ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
@@ -75,11 +74,19 @@ Database database = await //client.CreateDatabaseAsync("CARE")
 
 Console.WriteLine($"database.Id : {database.Id}");
 
-Container container = await database.CreateContainerIfNotExistsAsync(configuration["CollectionName"] ?? "PhoneStatusInfo", "/phone", 400);
+var containerProperties = new ContainerProperties
+{
+    Id = configuration["CollectionName"] ?? "PhoneStatusInfo",
+    PartitionKeyPath = "/phone",
+    DefaultTimeToLive = -1
+};
+Container container = await database.CreateContainerIfNotExistsAsync(containerProperties, 400);
 //Container container = await database.CreateContainerAsync(configuration["CollectionName"] ?? "PhoneStatusInfo", "/phone", 400);
 Console.WriteLine($"container.Id : {container.Id}");
 
-var phone = $"1{DateTime.Now:MMddHHmmss}";
+var phone = $"1{DateTime.Now:yyddHHmmss}";
+
+await CreateDemoItemsWithTtlAsync(container, "6268889999");
 
 await CreateDemoItemsAsync(container, phone);
 
@@ -110,23 +117,67 @@ await PatchOneAsync(container, patchOne.Id, patchOne.Phone,
         PatchOperation.Set("/lineOfBiz", "test"),
         PatchOperation.Set("/status", PhoneStatus.Grey),
         PatchOperation.Set("/comment", $"Updated: {DateTime.Now}, with new status: {PhoneStatus.Grey}"),
-        PatchOperation.Add("/history/0", new PhoneStatusRow(){CreateDate = DateTime.Now, Status = PhoneStatus.Grey}),
+        PatchOperation.Add("/history/0", new PhoneStatusRow() { CreateDate = DateTime.Now, Status = PhoneStatus.Grey }),
+        PatchOperation.Add("/history/0", new PhoneStatusRow() { CreateDate = DateTime.Now.AddMinutes(-5), Status = PhoneStatus.Black }),
+        PatchOperation.Add("/history/0", new PhoneStatusRow() { CreateDate = DateTime.Now.AddMinutes(-15), Status = PhoneStatus.Clear }), //processed lastly
     ]);
 await Task.Delay(1200);
 
 await PatchOneAsync(container, patchOne.Id, patchOne.Phone,
     [
         PatchOperation.Set("/status", PhoneStatus.Clear),
-        PatchOperation.Add("/history/0", new PhoneStatusRow(){CreateDate = DateTime.Now, Status = PhoneStatus.Clear}),
+        PatchOperation.Add("/history/0", new PhoneStatusRow() { CreateDate = DateTime.Now, Status = PhoneStatus.Clear }),
     ]);
 await Task.Delay(200);
+
+{
+    Console.WriteLine($"{Environment.NewLine}Press Enter to remove history[1], or any other key to continue.");
+    var key = Console.ReadKey(true);
+
+    if (key.Key == ConsoleKey.Enter)
+    {
+        await PatchOneAsync(container, patchOne.Id, patchOne.Phone,
+            [
+                PatchOperation.Set("/comment", $"Updated: {DateTime.Now}, with history[1] removed"),
+                PatchOperation.Remove("/history/1"),
+            ]);
+        await Task.Delay(200);
+    }
+}
+
 
 await DeleteItemsAsync(container, searchResult.Item1);
 Console.WriteLine($"{Environment.NewLine}[End] Exited");
 
+static async Task CreateDemoItemsWithTtlAsync(Container container, string phone, int ttl = 120)
+{
+    Console.WriteLine($"\r\n====Create Items with ttl {ttl} ====");
+
+    foreach (var p in new List<string> { "Biz-X", "Biz-Y" }.Take(10).ToList())
+    {
+        var data = new PhoneStatusInfo()
+        {
+            Id = Guid.NewGuid().ToString(),
+            Phone = phone,
+            LineOfBiz = p,
+            Comment = $"this item got created with TTL {ttl} seconds",
+            Status = PhoneStatus.Black,
+            History = new List<PhoneStatusRow>
+            {
+                new() { CreateDate = DateTime.Now, Status = PhoneStatus.Black}
+            },
+            Ttl = ttl
+        };
+
+        var result = await container.CreateItemAsync<PhoneStatusInfo>(data, requestOptions: new ItemRequestOptions { });
+
+        Console.WriteLine($"Create [{data.Id},{phone}] with ttl {ttl}, result.StatusCode : {result.StatusCode}, result.RequestCharge : {result.RequestCharge}");
+    }
+}
+
 static async Task CreateDemoItemsAsync(Container container, string phone)
 {
-    Console.WriteLine("\r\n====Create Items ====");
+    Console.WriteLine("\r\n====Create Items without ttl====");
 
     foreach (var p in new List<string> { "Biz-A", "Biz-B", "Biz-C" }.Take(10).ToList())
     {
@@ -150,7 +201,7 @@ static async Task CreateDemoItemsAsync(Container container, string phone)
 
 static async Task<Tuple<List<PhoneStatusInfo>, double>> SearchItemsByPhoneAsync(Container container, string phone2Search)
 {
-    Console.WriteLine("\r\n====Search Phone ====");
+    Console.WriteLine("\r\n====Search by Phone ====");
 
     var queryable = container.GetItemLinqQueryable<PhoneStatusInfo>();
     var matches = queryable.Where(p => p.Phone == phone2Search).OrderBy(p => p.CreateDate);//.Skip(1);
@@ -247,7 +298,7 @@ static async Task PatchOneAsync(Container container, string id2Patch, string pho
     foreach (var item in patchOperations)
     {
         Console.WriteLine($"  # {item.OperationType} {item.Path}");
-    }  
+    }
 
     var patchResult = await container.PatchItemAsync<PhoneStatusInfo>(id2Patch, new PartitionKey(phone2Patch), patchOperations);
 

@@ -17,6 +17,8 @@ public class PhoneStatusInfo
 
     public string Comment { get; set; }
 
+    public int Ttl { get; set; } = -1;
+
     public PhoneStatus Status { get; set; } = PhoneStatus.Clear;
 
     public DateTime CreateDate { get; set; } = DateTime.Now;
