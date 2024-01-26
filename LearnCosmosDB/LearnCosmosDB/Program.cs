@@ -1,4 +1,5 @@
-﻿using LearnCosmosDb;
+﻿using Azure.Identity;
+using LearnCosmosDb;
 using Microsoft.ApplicationInsights.Channel;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Azure.Cosmos;
@@ -31,6 +32,11 @@ services.AddLogging(builder =>
      var appInsightsConnectionString = configuration.GetConnectionString("APPLICATIONINSIGHTS_CONNECTION_STRING");
      if (!string.IsNullOrEmpty(appInsightsConnectionString))
      {
+         services.Configure<TelemetryConfiguration>(config =>
+         {
+             var credential = new DefaultAzureCredential();
+             config.SetAzureTokenCredential(credential);
+         });
          builder.AddApplicationInsights(
              configureTelemetryConfiguration: (config) => config.ConnectionString = configuration.GetConnectionString("APPLICATIONINSIGHTS_CONNECTION_STRING"),
              configureApplicationInsightsLoggerOptions: (options) => { }

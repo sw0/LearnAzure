@@ -10,8 +10,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{829DA206-8
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LearnKeyVault", "LearnKeyVault\LearnKeyVault.csproj", "{7C4FA02E-89B0-487A-8F6A-F02FCD27CECD}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -22,10 +20,6 @@ Global
 		{A543979B-2C6F-4D76-AF08-3FB5D319DC5C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A543979B-2C6F-4D76-AF08-3FB5D319DC5C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A543979B-2C6F-4D76-AF08-3FB5D319DC5C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7C4FA02E-89B0-487A-8F6A-F02FCD27CECD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7C4FA02E-89B0-487A-8F6A-F02FCD27CECD}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7C4FA02E-89B0-487A-8F6A-F02FCD27CECD}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7C4FA02E-89B0-487A-8F6A-F02FCD27CECD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
