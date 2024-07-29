@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "LearnKeyVault": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "AZURE_CLIENT_ID": "00000000-0000-0000-0000-000000000000",
+        "AZURE_TENANT_ID": "00000000-0000-0000-0000-000000000000",
+        "AZURE_CLIENT_SECRET": "jP5t--00000000-0000-0000-0000"
+      }
+    }
+  }
+}

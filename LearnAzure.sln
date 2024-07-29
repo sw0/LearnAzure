@@ -5,19 +5,20 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "LearnCosmosDB", "LearnCosmosDB", "{385B14B1-A641-46FB-BF79-F37D570265E8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LearnCosmosDb", "LearnCosmosDB\LearnCosmosDB\LearnCosmosDb.csproj", "{18B5311B-4666-4327-82A4-1622C5619EF1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LearnCosmosDb", "LearnCosmosDB\LearnCosmosDB\LearnCosmosDb.csproj", "{18B5311B-4666-4327-82A4-1622C5619EF1}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "LearnKeyVault", "LearnKeyVault", "{14D59A87-02BB-4FE6-9E7D-AB268ECE08B0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LearnKeyVault", "LearnKeyVault\LearnKeyVault\LearnKeyVault.csproj", "{328717DB-D4EA-4F2B-BEDC-652ABFE2A37D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LearnKeyVault", "LearnKeyVault\LearnKeyVault\LearnKeyVault.csproj", "{328717DB-D4EA-4F2B-BEDC-652ABFE2A37D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "LearnServiceBus", "LearnServiceBus", "{791DB35D-F1C7-4B9C-B4E5-0519FD12491D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LearnServiceBus", "LearnServiceBus\LearnServiceBus.csproj", "{C1244C6C-90E1-4F62-8E51-F9930E378E39}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{18B5311B-4666-4327-82A4-1622C5619EF1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -28,9 +29,20 @@ Global
 		{328717DB-D4EA-4F2B-BEDC-652ABFE2A37D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{328717DB-D4EA-4F2B-BEDC-652ABFE2A37D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{328717DB-D4EA-4F2B-BEDC-652ABFE2A37D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C1244C6C-90E1-4F62-8E51-F9930E378E39}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C1244C6C-90E1-4F62-8E51-F9930E378E39}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C1244C6C-90E1-4F62-8E51-F9930E378E39}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C1244C6C-90E1-4F62-8E51-F9930E378E39}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{18B5311B-4666-4327-82A4-1622C5619EF1} = {385B14B1-A641-46FB-BF79-F37D570265E8}
 		{328717DB-D4EA-4F2B-BEDC-652ABFE2A37D} = {14D59A87-02BB-4FE6-9E7D-AB268ECE08B0}
+		{C1244C6C-90E1-4F62-8E51-F9930E378E39} = {791DB35D-F1C7-4B9C-B4E5-0519FD12491D}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {87259399-72F4-4EE8-A7CC-79E6D2D4D0CE}
 	EndGlobalSection
 EndGlobal

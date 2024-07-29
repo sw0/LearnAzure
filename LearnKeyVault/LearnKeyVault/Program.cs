@@ -42,6 +42,7 @@ TokenCredential credental = new DefaultAzureCredential(new DefaultAzureCredentia
 }
 
 Console.WriteLine("Environment: {0}", env);
+Console.WriteLine("KeyVault: {0}", keyVaultUri.AbsoluteUri);
 Console.WriteLine("Key: KeySample, Value: {0}", configuration["KeySample"]);
 
 var services = new ServiceCollection();
