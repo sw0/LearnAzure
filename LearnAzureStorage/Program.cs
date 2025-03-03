@@ -1,4 +1,6 @@
 ﻿// See https://aka.ms/new-console-template for more information
+// references:
+//   https://learn.microsoft.com/en-us/azure/storage/blobs/storage-blob-properties-metadata
 
 using Azure.Core;
 using Azure.Identity;
